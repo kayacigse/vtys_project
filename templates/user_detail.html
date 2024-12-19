@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>{{ user.name }} {{ user.surname }}</h1>
+<p><strong>Email:</strong> {{ user.email }}</p>
+<p><strong>Phone:</strong> {{ user.phone }}</p>
+
+<h2>Task Summary</h2>
+<ul>
+    <li><strong>Completed on Time:</strong> {{ completed_on_time }}</li>
+    <li><strong>Completed Late:</strong> {{ completed_late }}</li>
+    <li><strong>Ongoing:</strong> {{ ongoing }}</li>
+    <li><strong>Upcoming:</strong> {{ upcoming }}</li>
+</ul>
+
+<h2>Tasks</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Task Name</th>
+            <th>Project Name</th>
+            <th>Start Date</th>
+            <th>Duration</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for task in tasks %}
+        <tr>
+            <td>{{ task.task_name }}</td>
+            <td>
+                <a href="/projects/{{ task.project_id }}">{{ task.project_name }}</a>
+            </td>
+            <td>{{ task.start_date }}</td>
+            <td>{{ task.duration }} days</td>
+            <td>{{ task.status }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<a href="/users" class="btn btn-secondary">Back to User List</a>
+{% endblock %}

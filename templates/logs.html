@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Task Logs</h1>
+
+<!-- Display flash messages -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div>
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }}" role="alert">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+{% endwith %}
+
+<!-- Add Log Form -->
+<form method="POST" class="mb-4">
+    <div class="mb-3">
+        <label for="task_id" class="form-label">Task ID</label>
+        <input type="number" id="task_id" name="task_id" class="form-control" required>
+    </div>
+    <div class="mb-3">
+        <label for="project_id" class="form-label">Project ID</label>
+        <input type="number" id="project_id" name="project_id" class="form-control" required>
+    </div>
+    <div class="mb-3">
+        <label for="delay_days" class="form-label">Delay (Days)</label>
+        <input type="number" id="delay_days" name="delay_days" class="form-control">
+    </div>
+    <div class="mb-3">
+        <label for="log_date" class="form-label">Log Date</label>
+        <input type="date" id="log_date" name="log_date" class="form-control" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Add Log</button>
+</form>
+
+<!-- Display Task Logs -->
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Task ID</th>
+            <th>Project ID</th>
+            <th>Delay (Days)</th>
+            <th>Log Date</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for log in logs %}
+        <tr>
+            <td>{{ log.id }}</td>
+            <td>{{ log.task_id }}</td>
+            <td>{{ log.project_id }}</td>
+            <td>{{ log.delay_days }}</td>
+            <td>{{ log.log_date }}</td>
+            <td>
+                <a href="/logs/delete/{{ log.id }}" class="btn btn-danger btn-sm">Delete</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}
