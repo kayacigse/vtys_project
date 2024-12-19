@@ -2,7 +2,6 @@ import mysql.connector
 import os
 from dotenv import load_dotenv
 
-# .env dosyasını yükle
 load_dotenv()
 
 # Çevresel değişkenlerden veritabanı bağlantı bilgilerini al
@@ -18,3 +17,12 @@ def get_db_connection():
         password=DB_PASSWORD,
         database=DB_DATABASE
     )
+
+try:
+    connection = get_db_connection()
+    print("Veritabanına başarıyla bağlanıldı!")
+except mysql.connector.Error as err:
+    print(f"Veritabanına bağlanırken hata oluştu: {err}")
+finally:
+    if connection.is_connected():
+        connection.close()
