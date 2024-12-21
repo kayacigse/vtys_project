@@ -307,6 +307,38 @@ def edit_user(user_id):
         
         return redirect(url_for('users'))
 
+@app.route('/users/<int:user_id>')
+def user_details(user_id):
+    db = get_db_connection()
+    cursor = db.cursor(dictionary=True)
+    
+    # Kullanıcı bilgilerini çek
+    cursor.execute("SELECT * FROM Users WHERE id = %s", (user_id,))
+    user = cursor.fetchone()
+    
+    # Kullanıcının projelerini çek
+    # Kullanıcının projelerini çek
+    cursor.execute("""
+        SELECT id AS project_id, name AS project_name, status AS project_status
+        FROM Projects
+        WHERE id = %s
+    """, (user_id,))
+    projects = cursor.fetchall()
+
+    
+    # Kullanıcının görevlerini çek
+    cursor.execute("""
+        SELECT id AS task_id, name AS task_name, status AS task_status
+        FROM Tasks t
+        WHERE t.id = %s
+    """, (user_id,))
+    tasks = cursor.fetchall()
+    
+    db.close()
+    
+    return render_template('user_details.html', user=user, projects=projects, tasks=tasks)
+
+
     db.close()
 
     return render_template('edit_user.html', user=user)
