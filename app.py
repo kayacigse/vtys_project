@@ -48,7 +48,11 @@ def projects():
             db.commit()
             flash("Project added successfully!", "success")
         except Exception as e:
-            flash(f"An error occurred while adding the project: {e}", "danger")
+            # Hata türünü kontrol ederek kullanıcı dostu bir mesaj oluştur
+            if "Incorrect date value" in str(e):
+                flash("Invalid date format. Please make sure the dates are in the correct format (YYYY-MM-DD).", "danger")
+            else:
+                flash("There was an error adding the project. Please check your information and try again.", "danger")
     cursor.execute("SELECT * FROM Projects")
     projects = cursor.fetchall()
     db.close()
@@ -267,6 +271,82 @@ def users():
     users = cursor.fetchall()
     db.close()
     return render_template('users.html', users=users)
+
+@app.route('/users/delete/<int:user_id>', methods=['GET', 'POST'])
+def delete_user(user_id):
+    db = get_db_connection()
+    cursor = db.cursor()
+    
+    # Kullanıcıyı silmek için SQL sorgusu
+    cursor.execute("DELETE FROM Users WHERE id = %s", (user_id,))
+    db.commit()
+    db.close()
+    
+    return redirect(url_for('users'))
+
+@app.route('/users/edit/<int:user_id>', methods=['GET', 'POST'])
+def edit_user(user_id):
+    db = get_db_connection()
+    cursor = db.cursor(dictionary=True)
+
+    # Kullanıcıyı veritabanından çekme
+    cursor.execute("SELECT * FROM Users WHERE id = %s", (user_id,))
+    user = cursor.fetchone()
+
+    if request.method == 'POST':
+        # Formdan gelen yeni kullanıcı bilgilerini alalım
+        name = request.form['name']
+        surname = request.form['surname']
+        email = request.form['email']
+        phone = request.form['phone']
+        
+        # SQL sorgusu ile kullanıcı bilgilerini güncelleme
+        cursor.execute("""
+            UPDATE Users
+            SET name = %s, surname = %s, email = %s, phone = %s
+            WHERE id = %s
+        """, (name, surname, email, phone, user_id))
+        db.commit()
+        db.close()
+        
+        return redirect(url_for('users'))
+
+@app.route('/users/<int:user_id>')
+def user_details(user_id):
+    db = get_db_connection()
+    cursor = db.cursor(dictionary=True)
+    
+    # Kullanıcı bilgilerini çek
+    cursor.execute("SELECT * FROM Users WHERE id = %s", (user_id,))
+    user = cursor.fetchone()
+    
+    # Kullanıcının projelerini çek
+    # Kullanıcının projelerini çek
+    cursor.execute("""
+        SELECT id AS project_id, name AS project_name, status AS project_status
+        FROM Projects
+        WHERE id = %s
+    """, (user_id,))
+    projects = cursor.fetchall()
+
+    
+    # Kullanıcının görevlerini çek
+    cursor.execute("""
+        SELECT id AS task_id, name AS task_name, status AS task_status
+        FROM Tasks t
+        WHERE t.id = %s
+    """, (user_id,))
+    tasks = cursor.fetchall()
+    
+    db.close()
+    
+    return render_template('user_details.html', user=user, projects=projects, tasks=tasks)
+
+
+    db.close()
+
+    return render_template('edit_user.html', user=user)
+
 
 if __name__ == '__main__':
     app.run(debug=True)
