@@ -268,5 +268,49 @@ def users():
     db.close()
     return render_template('users.html', users=users)
 
+@app.route('/users/delete/<int:user_id>', methods=['GET', 'POST'])
+def delete_user(user_id):
+    db = get_db_connection()
+    cursor = db.cursor()
+    
+    # Kullanıcıyı silmek için SQL sorgusu
+    cursor.execute("DELETE FROM Users WHERE id = %s", (user_id,))
+    db.commit()
+    db.close()
+    
+    return redirect(url_for('users'))
+
+@app.route('/users/edit/<int:user_id>', methods=['GET', 'POST'])
+def edit_user(user_id):
+    db = get_db_connection()
+    cursor = db.cursor(dictionary=True)
+
+    # Kullanıcıyı veritabanından çekme
+    cursor.execute("SELECT * FROM Users WHERE id = %s", (user_id,))
+    user = cursor.fetchone()
+
+    if request.method == 'POST':
+        # Formdan gelen yeni kullanıcı bilgilerini alalım
+        name = request.form['name']
+        surname = request.form['surname']
+        email = request.form['email']
+        phone = request.form['phone']
+        
+        # SQL sorgusu ile kullanıcı bilgilerini güncelleme
+        cursor.execute("""
+            UPDATE Users
+            SET name = %s, surname = %s, email = %s, phone = %s
+            WHERE id = %s
+        """, (name, surname, email, phone, user_id))
+        db.commit()
+        db.close()
+        
+        return redirect(url_for('users'))
+
+    db.close()
+
+    return render_template('edit_user.html', user=user)
+
+
 if __name__ == '__main__':
     app.run(debug=True)
