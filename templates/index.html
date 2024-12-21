@@ -1,6 +1,9 @@
 {% extends 'base.html' %}
+
 {% block content %}
 <h1>Projects</h1>
+
+<!-- Projects List -->
 <table class="table">
     <thead>
         <tr>
@@ -23,5 +26,71 @@
         {% endfor %}
     </tbody>
 </table>
-<a href="/projects" class="btn btn-primary">Add Project</a>
+
+<!-- Users Section -->
+<h3 class="mt-5">Users</h3>
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Username</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for user in users %}
+        <tr>
+            <td>{{ user.id }}</td>
+            <td>{{ user.username }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Add New Project Button -->
+<!--a href="/projects/new" class="btn btn-primary">Add Project</a-->
+
+<!-- Task Section -->
+<h3 class="mt-5">Tasks</h3>
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Status</th>
+            <th>Project ID</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for task in tasks %}
+        <tr>
+            <td>{{ task.id }}</td>
+            <td>{{ task.name }}</td>
+            <td>{{ task.status }}</td>
+            <td>{{ task.project_id }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Log Section -->
+<h3 class="mt-5">Logs</h3>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Task ID</th>
+            <th>Log Date</th>
+            <th>Delay (Days)</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for log in logs %}
+        <tr>
+            <td>{{ log.task_id }}</td>
+            <td>{{ log.log_date }}</td>
+            <td>{{ log.delay_days }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
 {% endblock %}
