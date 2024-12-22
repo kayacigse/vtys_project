@@ -48,7 +48,11 @@ def projects():
             db.commit()
             flash("Project added successfully!", "success")
         except Exception as e:
-            flash(f"An error occurred while adding the project: {e}", "danger")
+            # Hata türünü kontrol ederek kullanıcı dostu bir mesaj oluştur
+            if "Incorrect date value" in str(e):
+                flash("Invalid date format. Please make sure the dates are in the correct format (YYYY-MM-DD).", "danger")
+            else:
+                flash("There was an error adding the project. Please check your information and try again.", "danger")
     cursor.execute("SELECT * FROM Projects")
     projects = cursor.fetchall()
     db.close()
@@ -121,6 +125,37 @@ def update_project_status(project_id):
     return redirect(url_for('projects'))
 
 # Görev Yönetimi
+@app.route('/tasks', methods=['GET', 'POST'])
+def tasks():
+    db = get_db_connection()
+    cursor = db.cursor(dictionary=True)
+
+    if request.method == 'POST':
+        # Formdan gelen verilerle yeni bir görev ekle
+        project_id = request.form['project_id']
+        assigned_to = request.form.get('assigned_to')  # Boş olabilir
+        name = request.form['name']
+        start_date = request.form['start_date']
+        duration = request.form['duration']
+
+        # Görev ekleme sorgusu
+        cursor.execute("""
+            INSERT INTO Tasks (project_id, assigned_to, name, start_date, duration, status)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        """, (project_id, assigned_to, name, start_date, duration, 'Pending'))
+        db.commit()
+
+    # Tüm görevleri çek
+    cursor.execute("""
+        SELECT id, project_id, assigned_to, name, start_date, duration, 
+               DATE_ADD(start_date, INTERVAL duration DAY) AS end_date, status
+        FROM Tasks
+    """)
+    tasks = cursor.fetchall()
+    db.close()
+
+    return render_template('tasks.html', tasks=tasks)
+
 @app.route('/tasks/add/<int:project_id>', methods=['GET', 'POST'])
 def add_task(project_id):
     db = get_db_connection()
@@ -157,28 +192,36 @@ def add_task(project_id):
 def edit_task(task_id):
     db = get_db_connection()
     cursor = db.cursor(dictionary=True)
+
     if request.method == 'POST':
         try:
+            # Gelen POST verilerini kontrol edin
+            print(request.form)  # Gelen verileri terminalde görebilirsiniz
+
             name = request.form['name']
-            assigned_to = request.form['assigned_to']
             start_date = request.form['start_date']
             duration = request.form['duration']
             status = request.form['status']
+
+            # Sadece start_date ve duration'ı güncelleyin, end_date otomatik hesaplanacaktır.
             cursor.execute(
-                "UPDATE Tasks SET name=%s, assigned_to=%s, start_date=%s, duration=%s, status=%s WHERE id=%s",
-                (name, assigned_to, start_date, duration, status, task_id)
+                "UPDATE Tasks SET name=%s, start_date=%s, duration=%s, status=%s WHERE id=%s",
+                (name, start_date, duration, status, task_id)
             )
             db.commit()
             flash("Task updated successfully!", "success")
             return redirect(url_for('project_detail', project_id=request.form['project_id']))
         except Exception as e:
+            print(e)  # Tam hata mesajını konsola yazdırın
             flash(f"An error occurred while updating the task: {e}", "danger")
+
+    # Task ve Kullanıcıları Veritabanından Çekme
     cursor.execute("SELECT * FROM Tasks WHERE id = %s", (task_id,))
     task = cursor.fetchone()
-    cursor.execute("SELECT * FROM Users")
-    users = cursor.fetchall()
     db.close()
-    return render_template('edit_task.html', task=task, users=users)
+
+    return render_template('task_edit.html', task=task)
+
 
 @app.route('/tasks/delete/<int:task_id>')
 def delete_task(task_id):
@@ -205,11 +248,10 @@ def logs():
             task_id = request.form['task_id']
             project_id = request.form['project_id']
             delay_days = request.form['delay_days']
-            log_date = request.form['log_date']
             
             cursor.execute(
-                "INSERT INTO TaskLogs (task_id, project_id, delay_days, log_date) VALUES (%s, %s, %s, %s)",
-                (task_id, project_id, delay_days, log_date)
+                "INSERT INTO TaskLogs (task_id, project_id, delay_days) VALUES (%s, %s, %s)",
+                (task_id, project_id, delay_days)
             )
             db.commit()
             flash("Log added successfully!", "success")
@@ -285,27 +327,44 @@ def edit_user(user_id):
     db = get_db_connection()
     cursor = db.cursor(dictionary=True)
 
-    # Kullanıcıyı veritabanından çekme
-    cursor.execute("SELECT * FROM Users WHERE id = %s", (user_id,))
-    user = cursor.fetchone()
-
     if request.method == 'POST':
-        # Formdan gelen yeni kullanıcı bilgilerini alalım
+        # Formdan gelen verileri al
         name = request.form['name']
         surname = request.form['surname']
         email = request.form['email']
         phone = request.form['phone']
-        
-        # SQL sorgusu ile kullanıcı bilgilerini güncelleme
-        cursor.execute("""
-            UPDATE Users
-            SET name = %s, surname = %s, email = %s, phone = %s
-            WHERE id = %s
-        """, (name, surname, email, phone, user_id))
-        db.commit()
-        db.close()
-        
+
+        try:
+            # Kullanıcı bilgilerini güncelle
+            cursor.execute("""
+                UPDATE Users
+                SET name = %s, surname = %s, email = %s, phone = %s
+                WHERE id = %s
+            """, (name, surname, email, phone, user_id))
+            db.commit()
+            flash("Kullanıcı bilgileri başarıyla güncellendi.", "success")
+        except Exception as e:
+            db.rollback()
+            flash(f"Hata: Kullanıcı bilgileri güncellenemedi. {e}", "danger")
+        finally:
+            db.close()
+
+        # Başarılı bir güncellemeden sonra kullanıcı listesine yönlendir
         return redirect(url_for('users'))
+
+    else:
+        # Kullanıcı bilgilerini çek
+        cursor.execute("SELECT * FROM Users WHERE id = %s", (user_id,))
+        user = cursor.fetchone()
+        db.close()
+
+        if not user:
+            flash("Kullanıcı bulunamadı.", "warning")
+            return redirect(url_for('users'))
+
+        # Kullanıcı bilgilerini düzenleme sayfasını göster
+        return render_template('edit_user.html', user=user)
+
 
 @app.route('/users/<int:user_id>')
 def user_details(user_id):
