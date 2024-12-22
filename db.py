@@ -20,9 +20,9 @@ def get_db_connection():
 
 try:
     connection = get_db_connection()
-    print("Veritabanına başarıyla bağlanıldı!")
+    print("Successfully connected to the database!")
 except mysql.connector.Error as err:
-    print(f"Veritabanına bağlanırken hata oluştu: {err}")
+    print(f"Error connecting to the database: {err}")
 finally:
     if connection.is_connected():
         connection.close()

@@ -10,8 +10,8 @@
     <div class="mb-3">
         <label for="status" class="form-label">Update Status</label>
         <select id="status" name="status" class="form-select" required>
-            <option value="Tamamlanacak" {% if project.status == 'Not Started' %}selected{% endif %}>Not Started</option>
-            <option value="Tamamlandı" {% if project.status == 'Completed' %}selected{% endif %}>Completed</option>
+            <option value="To be Completed" {% if project.status == 'To be Completed' %}selected{% endif %}>To be Completed</option>
+            <option value="Completed" {% if project.status == 'Completed' %}selected{% endif %}>Completed</option>
         </select>
     </div>
     <button type="submit" class="btn btn-primary">Update Status</button>

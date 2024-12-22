@@ -169,7 +169,7 @@ def add_task(project_id):
             status = request.form['status']
 
             # Status değerinin geçerli olduğundan emin olun
-            valid_statuses = ['Tamamlanacak', 'Devam Ediyor', 'Tamamlandı']
+            valid_statuses = ['To be completed', 'In progress', 'Completed']
             if status not in valid_statuses:
                 flash("Invalid status value. Please choose a valid status.", "danger")
                 return redirect(url_for('add_task', project_id=project_id))
@@ -256,8 +256,11 @@ def logs():
             db.commit()
             flash("Log added successfully!", "success")
         except Exception as e:
-            db.rollback()
-            flash(f"An error occurred while adding the log: {e}", "danger")
+            # Foreign key kısıtlamasını kontrol et
+            if "foreign key constraint fails" in str(e).lower():
+                flash("Invalid task or project ID. Please make sure you have selected a correct task.", "danger")
+            else:
+                flash("There was an error adding the log. Please try again.", "danger")
     
     try:
         cursor.execute("SELECT * FROM TaskLogs ORDER BY log_date DESC")
@@ -302,8 +305,11 @@ def users():
             db.commit()
             flash("User added successfully!", "success")
         except Exception as e:
-            db.rollback()
-            flash(f"An error occurred while adding the user: {e}", "danger")
+            # Benzersiz kısıtlama hatasını kontrol et
+            if "Duplicate entry" in str(e) and "for key 'users.email'" in str(e):
+                flash("This email address is already registered. Please enter a different email address.", "danger")
+            else:
+                flash("An error has occurred. Please try again.", "danger")
     
     cursor.execute("SELECT * FROM Users")
     users = cursor.fetchall()
@@ -342,10 +348,10 @@ def edit_user(user_id):
                 WHERE id = %s
             """, (name, surname, email, phone, user_id))
             db.commit()
-            flash("Kullanıcı bilgileri başarıyla güncellendi.", "success")
+            flash("User information updated successfully.", "success")
         except Exception as e:
             db.rollback()
-            flash(f"Hata: Kullanıcı bilgileri güncellenemedi. {e}", "danger")
+            flash("Failed to update user information. {e}", "danger")
         finally:
             db.close()
 
@@ -370,21 +376,18 @@ def edit_user(user_id):
 def user_details(user_id):
     db = get_db_connection()
     cursor = db.cursor(dictionary=True)
-    
     # Kullanıcı bilgilerini çek
     cursor.execute("SELECT * FROM Users WHERE id = %s", (user_id,))
     user = cursor.fetchone()
-    
-    # Kullanıcının projelerini çek
+
     # Kullanıcının projelerini çek
     cursor.execute("""
         SELECT id AS project_id, name AS project_name, status AS project_status
         FROM Projects
-        WHERE id = %s
+        WHERE user_id = %s
     """, (user_id,))
     projects = cursor.fetchall()
 
-    
     # Kullanıcının görevlerini çek
     cursor.execute("""
         SELECT id AS task_id, name AS task_name, status AS task_status
