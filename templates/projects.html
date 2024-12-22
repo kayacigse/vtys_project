@@ -38,7 +38,7 @@
             <td>
                 <a href="{{ url_for('edit_project', project_id=project.id) }}" class="btn btn-warning btn-sm">Edit</a>
                 <a href="{{ url_for('delete_project', project_id=project.id) }}" class="btn btn-primary btn-sm">Delete</a>
-                <a href="{{ url_for('project_detail', project_id=project.id) }}" class="btn btn-info btn-sm">Details</a>
+                <a href="{{ url_for('project_detail', project_id=project.id) }}" class="btn btn-sm"style="background-color: #001A6E; color: white;">Details</a>
             </td>
         </tr>
         {% endfor %}
