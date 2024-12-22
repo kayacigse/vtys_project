@@ -28,10 +28,7 @@
         <label for="delay_days" class="form-label">Delay (Days)</label>
         <input type="number" id="delay_days" name="delay_days" class="form-control">
     </div>
-    <div class="mb-3">
-        <label for="log_date" class="form-label">Log Date</label>
-        <input type="date" id="log_date" name="log_date" class="form-control" required>
-    </div>
+    
     <button type="submit" class="btn btn-primary">Add Log</button>
 </form>
 
@@ -43,7 +40,6 @@
             <th>Task ID</th>
             <th>Project ID</th>
             <th>Delay (Days)</th>
-            <th>Log Date</th>
             <th>Actions</th>
         </tr>
     </thead>
@@ -54,7 +50,6 @@
             <td>{{ log.task_id }}</td>
             <td>{{ log.project_id }}</td>
             <td>{{ log.delay_days }}</td>
-            <td>{{ log.log_date }}</td>
             <td>
                 <a href="/logs/delete/{{ log.id }}" class="btn btn-primary btn-sm">Delete</a>
             </td>

@@ -10,16 +10,6 @@
     </div>
     
     <div class="mb-3">
-        <label for="assigned_to" class="form-label">Assigned To</label>
-        <select id="assigned_to" name="assigned_to" class="form-control" required>
-            <option value="">-- Select User --</option>
-            {% for user in users %}
-            <option value="{{ user.id }}" {% if user.id == task.assigned_to.id %}selected{% endif %}>{{ user.name }} {{ user.surname }}</option>
-            {% endfor %}
-        </select>
-    </div>
-
-    <div class="mb-3">
         <label for="start_date" class="form-label">Start Date</label>
         <input type="date" id="start_date" name="start_date" class="form-control" value="{{ task.start_date }}" required>
     </div>
