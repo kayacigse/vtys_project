@@ -22,9 +22,9 @@
     <div class="mb-3">
         <label for="status" class="form-label">Status</label>
         <select id="status" name="status" class="form-control" required>
-            <option value="To be completed" {% if task.status = 'To be completed' %}selected{% endif %}>To be completed</option>
-            <option value="In progress" {% if task.status = 'In progressr' %}selected{% endif %}>In progress</option>
-            <option value="Completed" {% if task.status = 'Completed' %}selected{% endif %}>Completed</option>
+            <option value="To be completed" {% if task.status == 'To be completed' %}selected{% endif %}>To be completed</option>
+            <option value="In progress" {% if task.status == 'In progressr' %}selected{% endif %}>In progress</option>
+            <option value="Completed" {% if task.status == 'Completed' %}selected{% endif %}>Completed</option>
         </select>
     </div>
 
@@ -33,4 +33,3 @@
 
 <a href="/projects/{{ project_id }}" class="btn btn-secondary">Back to Project</a>
 {% endblock %}
-

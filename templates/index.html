@@ -21,7 +21,7 @@
             <td>{{ project.name }}</td>
             <td>{{ project.start_date }}</td>
             <td>{{ project.end_date }}</td>
-            <td><a href="/projects/{{ project.id }}" class="btn btn-primary">View</a></td>
+            <td><a href="/projects/{{ project.id }}" class="btn btn-info btn-sm">View</a></td>
         </tr>
         {% endfor %}
     </tbody>
@@ -45,6 +45,9 @@
         {% endfor %}
     </tbody>
 </table>
+
+<!-- Add New Project Button -->
+<!--a href="/projects/new" class="btn btn-primary">Add Project</a-->
 
 <!-- Task Section -->
 <h3 class="mt-5">Tasks</h3>

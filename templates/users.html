@@ -3,6 +3,17 @@
 {% block content %}
 <h1>Add New User</h1>
 
+<!-- Display flash messages -->
+<!-- {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div>
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }}" role="alert">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+{% endwith %} -->
+
 <!-- User Add Form -->
 <form method="POST" action="/users" class="mb-4">
     <div class="mb-3">
@@ -47,8 +58,7 @@
             <td>
                 <a href="/users/edit/{{ user.id }}" class="btn btn-warning btn-sm">Edit</a>
                 <a href="/users/delete/{{ user.id }}" class="btn btn-primary btn-sm">Delete</a>
-                <a href="/users/{{ user.id }}" class="btn btn-sm"style="background-color: #001A6E; color: white;">Details</a>
-            </td>
+                <a href="/users/{{ user.id }}" class="btn btn-sm"style="background-color: #001A6E; color: white;">Details</a>            </td>
         </tr>
         {% endfor %}
     </tbody>
