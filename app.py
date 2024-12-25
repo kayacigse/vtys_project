@@ -195,32 +195,53 @@ def edit_task(task_id):
 
     if request.method == 'POST':
         try:
-            # Gelen POST verilerini kontrol edin
-            print(request.form)  # Gelen verileri terminalde görebilirsiniz
+            # Mevcut veritabanı değerlerini al
+            cursor.execute("SELECT * FROM Tasks WHERE id = %s", (task_id,))
+            task = cursor.fetchone()
 
-            name = request.form['name']
-            start_date = request.form['start_date']
-            duration = request.form['duration']
-            status = request.form['status']
+            if not task:
+                flash("Task not found.", "danger")
+                return redirect(url_for('index'))  # Uygun bir yönlendirme yapabilirsiniz
 
-            # Sadece start_date ve duration'ı güncelleyin, end_date otomatik hesaplanacaktır.
+            # Formdan gelen veriler
+            name = request.form.get('name', task['name'])  # Eğer boşsa eski değeri kullan
+            start_date = request.form.get('start_date', task['start_date'])
+            duration = request.form.get('duration', task['duration'])
+            status = request.form.get('status', task['status'])
+
+            # start_date ve duration format kontrolü
+            try:
+                if start_date:
+                    datetime.strptime(start_date, '%Y-%m-%d')  # Tarih formatı
+                if duration:
+                    duration = int(duration)  # Sürenin tam sayı olması
+            except ValueError:
+                flash("Invalid date or duration format.", "danger")
+                return redirect(request.url)
+
+            # Güncelleme sorgusu
             cursor.execute(
-                "UPDATE Tasks SET name=%s, start_date=%s, duration=%s, status=%s WHERE id=%s",
+                """
+                UPDATE Tasks 
+                SET name=%s, start_date=%s, duration=%s, status=%s 
+                WHERE id=%s
+                """,
                 (name, start_date, duration, status, task_id)
             )
             db.commit()
             flash("Task updated successfully!", "success")
-            return redirect(url_for('project_detail', project_id=request.form['project_id']))
+            return redirect(url_for('tasks'))  # Uygun bir yönlendirme yapabilirsiniz
         except Exception as e:
-            print(e)  # Tam hata mesajını konsola yazdırın
+            print(e)  # Hata detaylarını konsola yazdır
             flash(f"An error occurred while updating the task: {e}", "danger")
 
-    # Task ve Kullanıcıları Veritabanından Çekme
+    # Task Verilerini Çekme
     cursor.execute("SELECT * FROM Tasks WHERE id = %s", (task_id,))
     task = cursor.fetchone()
     db.close()
 
     return render_template('task_edit.html', task=task)
+
 
 
 @app.route('/tasks/delete/<int:task_id>')
@@ -375,7 +396,6 @@ def user_details(user_id):
     cursor.execute("SELECT * FROM Users WHERE id = %s", (user_id,))
     user = cursor.fetchone()
     
-    # Kullanıcının projelerini çek
     # Kullanıcının projelerini çek
     cursor.execute("""
         SELECT id AS project_id, name AS project_name, status AS project_status
