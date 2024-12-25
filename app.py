@@ -132,17 +132,17 @@ def tasks():
 
     if request.method == 'POST':
         # Formdan gelen verilerle yeni bir görev ekle
-        project_id = request.get['project_id']
-        assigned_to = request.form.get['assigned_to'or None] # Eğer boşsa None olarak atanır
-        name = request.get['name']
-        start_date = request.get['start_date']
-        duration = request.get['duration']
+        project_id = request.form['project_id']
+        assigned_to = request.form.get('assigned_to')  # Boş olabilir
+        name = request.form['name']
+        start_date = request.form['start_date']
+        duration = request.form['duration']
 
         # Görev ekleme sorgusu
         cursor.execute("""
             INSERT INTO Tasks (project_id, assigned_to, name, start_date, duration, status)
             VALUES (%s, %s, %s, %s, %s, %s)
-        """, (project_id, assigned_to or '', name, start_date, duration, 'Pending'))
+        """, (project_id, assigned_to, name, start_date, duration, 'Pending'))
         db.commit()
 
     # Tüm görevleri çek
@@ -188,88 +188,59 @@ def add_task(project_id):
     db.close()
     return render_template('add_task.html', project_id=project_id, users=users)
 
-# @app.route('/tasks/edit/<int:task_id>', methods=['GET', 'POST'])
-# def edit_task(task_id):
-#     db = get_db_connection()
-#     cursor = db.cursor(dictionary=True)
-
-#     if request.method == 'POST':
-#         try:
-#             # Gelen POST verilerini kontrol edin
-#             print(request.form)  # Gelen verileri terminalde görebilirsiniz
-
-#             name = request.form['name']
-#             start_date = request.form['start_date']
-#             duration = request.form['duration']
-#             status = request.form['status']
-
-#             # Sadece start_date ve duration'ı güncelleyin, end_date otomatik hesaplanacaktır.
-#             cursor.execute(
-#                 "UPDATE Tasks SET name=%s, start_date=%s, duration=%s, status=%s WHERE id=%s",
-#                 (name, start_date, duration, status, task_id)
-#             )
-#             db.commit()
-#             flash("Task updated successfully!", "success")
-#             return redirect(url_for('project_detail', project_id=request.form['project_id']))
-#         except Exception as e:
-#             print(e)  # Tam hata mesajını konsola yazdırın
-#             flash(f"An error occurred while updating the task: {e}", "danger")
-
-#     # Task ve Kullanıcıları Veritabanından Çekme
-#     cursor.execute("SELECT * FROM Tasks WHERE id = %s", (task_id,))
-#     task = cursor.fetchone()
-#     db.close()
-
-#     return render_template('task_edit.html', task=task)
 @app.route('/tasks/edit/<int:task_id>', methods=['GET', 'POST'])
 def edit_task(task_id):
     db = get_db_connection()
     cursor = db.cursor(dictionary=True)
 
-    # Görevi Veritabanından Çek
-    cursor.execute("SELECT * FROM Tasks WHERE id = %s", (task_id,))
-    task = cursor.fetchone()
-    if not task:
-        flash("Task not found.", "danger")
-        return redirect(url_for('tasks'))
-
     if request.method == 'POST':
         try:
-            # Form verilerini al
-            name = request.form.get('name')
-            start_date = request.form.get('start_date')
-            duration = request.form.get('duration')
-            status = request.form.get('status', '').strip()  # Gereksiz boşlukları temizle
+            # Mevcut veritabanı değerlerini al
+            cursor.execute("SELECT * FROM Tasks WHERE id = %s", (task_id,))
+            task = cursor.fetchone()
 
-            # Geçerli durum değerleri
-            valid_statuses = ['To be completed', 'In progress', 'Completed']
+            if not task:
+                flash("Task not found.", "danger")
+                return redirect(url_for('index'))  # Uygun bir yönlendirme yapabilirsiniz
 
-            # Eksik alanları ve geçersiz durum değerlerini kontrol et
-            if not name or not start_date or not duration or not status:
-                flash("All fields are required.", "danger")
-                return redirect(url_for('edit_task', task_id=task_id))
+            # Formdan gelen veriler
+            name = request.form.get('name', task['name'])  # Eğer boşsa eski değeri kullan
+            start_date = request.form.get('start_date', task['start_date'])
+            duration = request.form.get('duration', task['duration'])
+            status = request.form.get('status', task['status'])
 
-            if status not in valid_statuses:
-                flash("Invalid status value. Please choose a valid status.", "danger")
-                return redirect(url_for('edit_task', task_id=task_id))
+            # start_date ve duration format kontrolü
+            try:
+                if start_date:
+                    datetime.strptime(start_date, '%Y-%m-%d')  # Tarih formatı
+                if duration:
+                    duration = int(duration)  # Sürenin tam sayı olması
+            except ValueError:
+                flash("Invalid date or duration format.", "danger")
+                return redirect(request.url)
 
-            # Görevi Güncelle
-            cursor.execute("""
-                UPDATE Tasks
-                SET name = %s, start_date = %s, duration = %s, status = %s
-                WHERE id = %s
-            """, (name, start_date, duration, status, task_id))
+            # Güncelleme sorgusu
+            cursor.execute(
+                """
+                UPDATE Tasks 
+                SET name=%s, start_date=%s, duration=%s, status=%s 
+                WHERE id=%s
+                """,
+                (name, start_date, duration, status, task_id)
+            )
             db.commit()
-
             flash("Task updated successfully!", "success")
-            return redirect(url_for('tasks'))
+            return redirect(url_for('tasks'))  # Uygun bir yönlendirme yapabilirsiniz
         except Exception as e:
-            flash(f"An error occurred: {e}", "danger")
-        finally:
-            db.close()
+            print(e)  # Hata detaylarını konsola yazdır
+            flash(f"An error occurred while updating the task: {e}", "danger")
+
+    # Task Verilerini Çekme
+    cursor.execute("SELECT * FROM Tasks WHERE id = %s", (task_id,))
+    task = cursor.fetchone()
+    db.close()
 
     return render_template('task_edit.html', task=task)
-
 
 
 
@@ -317,42 +288,6 @@ def logs():
         flash(f"An error occurred while fetching the logs: {e}", "danger")
     db.close()
     return render_template('logs.html', logs=logs)
-
-@app.route('/logs/add', methods=['POST'])
-def add_log():
-    db = get_db_connection()
-    cursor = db.cursor(dictionary=True)
-
-    try:
-        task_id = request.form.get('task_id')
-        delay_days = request.form.get('delay_days', 0)
-        log_date = request.form.get('log_date')
-
-        # Gönderilen task_id'nin geçerli olduğunu kontrol et
-        cursor.execute("SELECT id FROM Tasks WHERE id = %s", (task_id,))
-        task = cursor.fetchone()
-        if not task:
-            flash("The specified task does not exist. Please choose a valid task.", "danger")
-            return redirect(url_for('logs'))
-
-        # TaskLogs tablosuna veri ekle
-        cursor.execute("""
-            INSERT INTO TaskLogs (task_id, delay_days, log_date)
-            VALUES (%s, %s, %s)
-        """, (task_id, delay_days, log_date))
-        db.commit()
-
-        flash("Log added successfully!", "success")
-        return redirect(url_for('logs'))
-    except Exception as e:
-        # Hata mesajını kontrol ederek kullanıcı dostu bir mesaj göster
-        if "foreign key constraint fails" in str(e).lower():
-            flash("The selected task does not exist or has been deleted. Please verify the task ID.", "danger")
-        else:
-            flash(f"An unexpected error occurred: {e}", "danger")
-    finally:
-        db.close()
-
 
 @app.route('/logs/delete/<int:log_id>', methods=['GET', 'POST'])
 def delete_log(log_id):
@@ -445,7 +380,7 @@ def edit_user(user_id):
         db.close()
 
         if not user:
-            flash("User not found.", "warning")
+            flash("User not found..", "warning")
             return redirect(url_for('users'))
 
         # Kullanıcı bilgilerini düzenleme sayfasını göster
