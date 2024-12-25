@@ -278,7 +278,11 @@ def logs():
             flash("Log added successfully!", "success")
         except Exception as e:
             db.rollback()
-            flash(f"An error occurred while adding the log: {e}", "danger")
+            # User-friendly error message for foreign key constraint failure
+            if "foreign key constraint fails" in str(e):
+                flash("Error: The task is not associated with a valid task. Please make sure you selected an existing task.", "danger")
+            else:
+                flash(f"An error occurred while adding the log: {e}", "danger")
     
     try:
         cursor.execute("SELECT * FROM TaskLogs ORDER BY log_date DESC")
@@ -288,6 +292,7 @@ def logs():
         flash(f"An error occurred while fetching the logs: {e}", "danger")
     db.close()
     return render_template('logs.html', logs=logs)
+
 
 @app.route('/logs/delete/<int:log_id>', methods=['GET', 'POST'])
 def delete_log(log_id):

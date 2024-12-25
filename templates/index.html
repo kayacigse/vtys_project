@@ -77,16 +77,16 @@
 <table class="table">
     <thead>
         <tr>
+            <th>Project ID</th>
             <th>Task ID</th>
-            <th>Log Date</th>
             <th>Delay (Days)</th>
         </tr>
     </thead>
     <tbody>
         {% for log in logs %}
         <tr>
+            <td>{{ log.project_id }}</td>
             <td>{{ log.task_id }}</td>
-            <td>{{ log.log_date }}</td>
             <td>{{ log.delay_days }}</td>
         </tr>
         {% endfor %}
