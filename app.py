@@ -414,7 +414,7 @@ def user_details(user_id):
     # Kullanıcının görevlerini çek
     cursor.execute("""
         SELECT t.id AS task_id, t.name AS task_name, t.status AS task_status,
-               t.start_date, t.duration, t.end_date
+               t.start_date, t.duration, t.end_date, p.id AS project_id
         FROM Tasks t
         JOIN Projects p ON t.project_id = p.id
         WHERE t.assigned_to = %s
