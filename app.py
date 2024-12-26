@@ -400,21 +400,24 @@ def user_details(user_id):
     # Kullanıcı bilgilerini çek
     cursor.execute("SELECT * FROM Users WHERE id = %s", (user_id,))
     user = cursor.fetchone()
-    
-    # Kullanıcının projelerini çek
+
+    # Kullanıcının katıldığı projeleri çek
     cursor.execute("""
-        SELECT id AS project_id, name AS project_name, status AS project_status
-        FROM Projects
-        WHERE id = %s
+        SELECT DISTINCT p.id AS project_id, p.name AS project_name, p.status AS project_status,
+            p.start_date, p.end_date
+        FROM Projects p
+        JOIN Tasks t ON p.id = t.project_id
+        WHERE t.assigned_to = %s
     """, (user_id,))
     projects = cursor.fetchall()
 
-    
     # Kullanıcının görevlerini çek
     cursor.execute("""
-        SELECT id AS task_id, name AS task_name, status AS task_status
+        SELECT t.id AS task_id, t.name AS task_name, t.status AS task_status,
+               t.start_date, t.duration, t.end_date
         FROM Tasks t
-        WHERE t.id = %s
+        JOIN Projects p ON t.project_id = p.id
+        WHERE t.assigned_to = %s
     """, (user_id,))
     tasks = cursor.fetchall()
     
