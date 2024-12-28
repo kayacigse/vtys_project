@@ -98,7 +98,7 @@ def edit_project(project_id):
             )
             db.commit()
             flash("Project updated successfully!", "success")
-            return redirect(url_for('project_detail', project_id=project_id))
+            return redirect(url_for('projects', project_id=project_id))
         except Exception as e:
             flash(f"An error occurred while updating the project: {e}", "danger")
     cursor.execute("SELECT * FROM Projects WHERE id = %s", (project_id,))
@@ -133,7 +133,7 @@ def tasks():
     if request.method == 'POST':
         # Formdan gelen verilerle yeni bir görev ekle
         project_id = request.form['project_id']
-        assigned_to = request.form.get('assigned_to')  # Boş olabilir
+        assigned_to = request.form.get('assigned_to')
         name = request.form['name']
         start_date = request.form['start_date']
         duration = request.form['duration']
@@ -319,11 +319,12 @@ def users():
         name = request.form['name']
         surname = request.form['surname']
         email = request.form['email']
-        
+        phone = request.form['phone']
+
         try:
             cursor.execute(
-                "INSERT INTO Users (name, surname, email) VALUES (%s, %s, %s)",
-                (name, surname, email)
+                "INSERT INTO Users (name, surname, email, phone) VALUES (%s, %s, %s, %s)",
+                (name, surname, email, phone)
             )
             db.commit()
             flash("User added successfully!", "success")
@@ -368,7 +369,7 @@ def edit_user(user_id):
                 WHERE id = %s
             """, (name, surname, email, phone, user_id))
             db.commit()
-            flash("User informations can updated.", "success")
+            flash("User informations updated.", "success")
         except Exception as e:
             db.rollback()
             flash(f"Error: User informations can not updated. {e}", "danger")
