@@ -3,17 +3,6 @@
 {% block content %}
 <h1>Task Logs</h1>
 
-<!-- Display flash messages 
-{% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-    <div>
-        {% for category, message in messages %}
-        <div class="alert alert-{{ category }}" role="alert">{{ message }}</div>
-        {% endfor %}
-    </div>
-    {% endif %}
-{% endwith %} -->
-
 <!-- Add Log Form -->
 <form method="POST" class="mb-4">
     <div class="mb-3">

@@ -368,10 +368,10 @@ def edit_user(user_id):
                 WHERE id = %s
             """, (name, surname, email, phone, user_id))
             db.commit()
-            flash("Kullanıcı bilgileri başarıyla güncellendi.", "success")
+            flash("User informations can updated.", "success")
         except Exception as e:
             db.rollback()
-            flash(f"Hata: Kullanıcı bilgileri güncellenemedi. {e}", "danger")
+            flash(f"Error: User informations can not updated. {e}", "danger")
         finally:
             db.close()
 
@@ -385,7 +385,7 @@ def edit_user(user_id):
         db.close()
 
         if not user:
-            flash("Kullanıcı bulunamadı.", "warning")
+            flash("User not found.", "warning")
             return redirect(url_for('users'))
 
         # Kullanıcı bilgilerini düzenleme sayfasını göster
